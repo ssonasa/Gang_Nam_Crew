@@ -1,0 +1,9 @@
+조도센서(샘플링레이트 10Hz<1초에 10번>)로 30초 동안의 값(총 300개가 될 것이다)을 파일로 만든다. 파일을 gnuplot으로 (그래프)출력한다.
+<gnuplot은 찾아보세요 opensource입니다~>
+gnu script를 작성하고 github에다 source파일(조도센서 10Hz로 30초동안 값을 얻는 파일), script파일을 push한다. 
+
+
+파이스코프 같이 xming서버 띄어놓고 해야 한다.
+일요일까지 하세요
+
+processing (arduino gyro accel)그래프도 도전해보세요
