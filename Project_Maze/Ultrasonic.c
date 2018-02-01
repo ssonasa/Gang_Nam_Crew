@@ -5,7 +5,7 @@
 #define FRONT_TRIG_PINNO 16
 #define FRONT_ECHO_PINNO 13
 #define RIGHT_TRIG_PINNO 19
-#define RIGHT_ECHO_PINNO 26
+#define RIGHT_ECHO_PINNO 6
 #define LEFT_TRIG_PINNO 21
 #define LEFT_ECHO_PINNO 20
 
@@ -44,8 +44,8 @@ int main()
     while(1){
         start_tick_ = dist_tick_ = 0;
         gpio_trigger(pi, FRONT_TRIG_PINNO, 10, PI_HIGH);
-        time_sleep(0.1);   //돌아올때까지 기다리지 못하면 오류값이 나온다. 거리가 멀어질수록 돌아오는 시간이 길어지니까 적당히 긴 시간동안 기다려야한다.
-                            //약 200cm거리 측정할때 11816마이크로초 걸린다 (0.011816초)
+        time_sleep(0.1);   //���ƿö����� ��ٸ��� ���ϸ� �������� ���´�. �Ÿ��� �־������� ���ƿ��� �ð��� ������ϱ� ������ �� �ð����� ��ٷ����Ѵ�.
+
         if(dist_tick_ && start_tick_){
             //distance = (float)(dist_tick_) / 58.8235;
             Fdistance = dist_tick_ / 1000000. * 340 / 2 * 100;
