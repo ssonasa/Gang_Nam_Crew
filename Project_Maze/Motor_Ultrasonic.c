@@ -22,7 +22,7 @@ uint32_t start_tick_, dist_tick_;
 
 int main(void){
 
-    int i;
+    //int i;
     int pi;
     //D
     int default_range = 100;
@@ -64,7 +64,7 @@ int main(void){
         //Front Ultrasonic sensor
         start_tick_ = dist_tick_ = 0;
         gpio_trigger(pi, FRONT_TRIG_PINNO, 10, PI_HIGH);
-        time_sleep(0.1);
+        time_sleep(0.05);
         Fdistance = dist_tick_ / 1000000. * 340 / 2 * 100;
         if(Fdistance > 2 && Fdistance < 200){
             if(dist_tick_ && start_tick_){
@@ -85,7 +85,7 @@ int main(void){
         //Right Ultrasonic sensor
         start_tick_ = dist_tick_ = 0;
         gpio_trigger(pi, RIGHT_TRIG_PINNO, 10, PI_HIGH);
-        time_sleep(0.1);
+        time_sleep(0.05);
         Rdistance = dist_tick_ / 1000000. * 340 / 2 * 100;
         if(Rdistance > 2 && Rdistance < 200){
             if(dist_tick_ && start_tick_){
@@ -103,17 +103,18 @@ int main(void){
             set_PWM_dutycycle(pi, INPUT3, 0);
             set_PWM_dutycycle(pi, INPUT4, 0);
         }
-                start_tick_ = dist_tick_ = 0;
+        //Left Ultrasonic sensor
+        start_tick_ = dist_tick_ = 0;
         gpio_trigger(pi, LEFT_TRIG_PINNO, 10, PI_HIGH);
-        time_sleep(0.1);
+        time_sleep(0.05);
         Ldistance = dist_tick_ / 1000000. * 340 / 2 * 100;
         //Left Ultrasonic sensor
         if(Ldistance > 2 && Ldistance < 200){
             if(dist_tick_ && start_tick_){
                 if(Ldistance < 2 || Ldistance > 400)
-                    printf("LEFT : %6dus, Distance : %6.1f cm\n\n", dist_tick_, Ldistance);
+                    printf("LEFT : %6dus, Distance : %6.1f cm\n", dist_tick_, Ldistance);
                 else{ 
-                    printf("LEFT : %6dus, Distance : %6.1f cm\n\n", dist_tick_, Ldistance);
+                    printf("LEFT : %6dus, Distance : %6.1f cm\n", dist_tick_, Ldistance);
                 }
             }
         }
@@ -124,34 +125,59 @@ int main(void){
             set_PWM_dutycycle(pi, INPUT3, 0);
             set_PWM_dutycycle(pi, INPUT4, 0);
         }
+        //Reverse
+        if((Fdistance <= 5.5) && (Rdistance == Ldistance)){
+            set_PWM_dutycycle(pi, INPUT1, 30);
+			set_PWM_dutycycle(pi, INPUT3, 30);
+			gpio_write(pi, INPUT2, PI_LOW);
+			gpio_write(pi, INPUT4, PI_LOW);
+            printf("REVERSE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+            //time_sleep(0.1);
+        }
+        //Left_Reverse
+        else if((Fdistance <= 5.5) && (Rdistance < Ldistance)){
+			set_PWM_dutycycle(pi, INPUT1, 40);
+			set_PWM_dutycycle(pi, INPUT3, 30);
+			gpio_write(pi, INPUT2, PI_LOW);
+			gpio_write(pi, INPUT4, PI_LOW);
+            printf("Left_Reverse!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+			//time_sleep(0.1);
+        }
+        //Right_Reverse
+        else if((Fdistance <= 5.5) && (Ldistance < Rdistance)){
+			set_PWM_dutycycle(pi, INPUT1, 30);
+            set_PWM_dutycycle(pi, INPUT3, 40);
+			gpio_write(pi, INPUT2, PI_LOW);
+			gpio_write(pi, INPUT4, PI_LOW);
+            printf("Right_Reverse!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+			//time_sleep(0.1);
+        }
         //Forward
-        if((Ldistance <= Rdistance+2 && Ldistance >= Rdistance-2) && (Rdistance < Fdistance)){
-            set_PWM_dutycycle(pi, INPUT2, Fdistance*10);
-			set_PWM_dutycycle(pi, INPUT4, Fdistance*10);
+        else if((Fdistance > 5.5) && (Rdistance == Ldistance)){
+            set_PWM_dutycycle(pi, INPUT2, 30);
+			set_PWM_dutycycle(pi, INPUT4, 30);
 			gpio_write(pi, INPUT1, PI_LOW);
 			gpio_write(pi, INPUT3, PI_LOW);
             printf("FORWARD!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
-            time_sleep(1);
+            //time_sleep(0.1);
         }
-        else if((Rdistance <= Fdistance+2 && Rdistance >= Fdistance-2) && (Fdistance < Ldistance)){
-            
-            set_PWM_dutycycle(pi, INPUT1, Ldistance*10);
-            set_PWM_dutycycle(pi, INPUT2, 0);
-            set_PWM_dutycycle(pi, INPUT3, 0);
-            set_PWM_dutycycle(pi, INPUT4, Ldistance*10);     
-            
-            printf("LEFT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
-            time_sleep(1);       
+        //Left_Forward
+        else if((Fdistance > 5.5) && (Rdistance < Ldistance)){
+			set_PWM_dutycycle(pi, INPUT2, 40);
+			set_PWM_dutycycle(pi, INPUT4, 30);
+			gpio_write(pi, INPUT1, PI_LOW);
+			gpio_write(pi, INPUT3, PI_LOW);
+            printf("Left_Forward!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+			//time_sleep(0.1);
         }
-        else if((Fdistance <= Ldistance+2 && Fdistance >= Ldistance-2) && (Ldistance < Rdistance)){
-            
-            set_PWM_dutycycle(pi, INPUT1, Rdistance*10);
-            set_PWM_dutycycle(pi, INPUT2, 0);
-            set_PWM_dutycycle(pi, INPUT3, Rdistance*10);
-            set_PWM_dutycycle(pi, INPUT4, 0);
-            
-            printf("RIGHT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
-            time_sleep(1);
+        //Right_Forward
+        else if((Fdistance > 5.5) && (Ldistance < Rdistance)){
+			set_PWM_dutycycle(pi, INPUT2, 30);
+            set_PWM_dutycycle(pi, INPUT4, 40);
+			gpio_write(pi, INPUT1, PI_LOW);
+			gpio_write(pi, INPUT3, PI_LOW);
+            printf("Right_Forward!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+			//time_sleep(0.1);
         }
         else{
             printf("sense error\n");

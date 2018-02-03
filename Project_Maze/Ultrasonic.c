@@ -44,7 +44,7 @@ int main()
     while(1){
         start_tick_ = dist_tick_ = 0;
         gpio_trigger(pi, FRONT_TRIG_PINNO, 10, PI_HIGH);
-        time_sleep(0.1);   //µ¹¾Æ¿Ã¶§±îÁö ±â´Ù¸®Áö ¸øÇÏ¸é ¿À·ù°ªÀÌ ³ª¿Â´Ù. °Å¸®°¡ ¸Ö¾îÁú¼ö·Ï µ¹¾Æ¿À´Â ½Ã°£ÀÌ ±æ¾îÁö´Ï±î Àû´çÈ÷ ±ä ½Ã°£µ¿¾È ±â´Ù·Á¾ßÇÑ´Ù.
+        time_sleep(0.05);   //185cmì¼ë•Œ 10930ë§ˆì´í¬ë¡œ ì´ˆ ê±¸ë¦°ë‹¤. (ì•½0.01ì´ˆ)
 
         if(dist_tick_ && start_tick_){
             //distance = (float)(dist_tick_) / 58.8235;
@@ -59,7 +59,7 @@ int main()
         
         start_tick_ = dist_tick_ = 0;
         gpio_trigger(pi, RIGHT_TRIG_PINNO, 10, PI_HIGH);
-        time_sleep(0.1);
+        time_sleep(0.05);
         if(dist_tick_ && start_tick_){
             //distance = (float)(dist_tick_) / 58.8235;
             Rdistance = dist_tick_ / 1000000. * 340 / 2 * 100;
@@ -73,7 +73,7 @@ int main()
         
         start_tick_ = dist_tick_ = 0;
         gpio_trigger(pi, LEFT_TRIG_PINNO, 10, PI_HIGH);
-        time_sleep(0.1);
+        time_sleep(0.05);
 
         if(dist_tick_ && start_tick_){
             //distance = (float)(dist_tick_) / 58.8235;
@@ -88,32 +88,17 @@ int main()
 
         //Forward
         if((Ldistance <= Rdistance+2 && Ldistance >= Rdistance-2) && (Rdistance < Fdistance)){
-            /*
-            set_PWM_dutycycle(pi, INPUT1, 0);
-            set_PWM_dutycycle(pi, INPUT2, Fdistance*20);
-            set_PWM_dutycycle(pi, INPUT3, 0);
-            set_PWM_dutycycle(pi, INPUT4, Fdistance*20);
-            */
+            
             printf("FORWARD!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n");
             time_sleep(1);
         }
         else if((Rdistance <= Fdistance+2 && Rdistance >= Fdistance-2) && (Fdistance < Ldistance)){
-            /*
-            set_PWM_dutycycle(pi, INPUT1, Ldistance*20);
-            set_PWM_dutycycle(pi, INPUT2, 0);
-            set_PWM_dutycycle(pi, INPUT3, 0);
-            set_PWM_dutycycle(pi, INPUT4, Ldistance*20);     
-            */
+            
             printf("LEFT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n");
             time_sleep(1);       
         }
         else if((Fdistance <= Ldistance+2 && Fdistance >= Ldistance-2) && (Ldistance < Rdistance)){
-            /*
-            set_PWM_dutycycle(pi, INPUT1, Rdistance*20);
-            set_PWM_dutycycle(pi, INPUT2, 0);
-            set_PWM_dutycycle(pi, INPUT3, Rdistance*20);
-            set_PWM_dutycycle(pi, INPUT4, 0);
-            */
+            
             printf("RIGHT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n");
             time_sleep(1);
         }

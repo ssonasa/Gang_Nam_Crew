@@ -34,79 +34,74 @@ int main(void)
 	range = get_PWM_range(pi, INPUT1);
 
 	for (int k = 0; k < 5; k++) {
-        /*gpio_write(pi, INPUT1, PI_LOW);
+        gpio_write(pi, INPUT1, PI_LOW);
 	    gpio_write(pi, INPUT2, PI_LOW);
 	    gpio_write(pi, INPUT3, PI_LOW);
 	    gpio_write(pi, INPUT4, PI_LOW);
-        time_sleep(2);*/
+        time_sleep(2);
 		//Forward
-		for (i = 50; i < range; i += 10) {
+		for (i = 30; i <= range; i += 10) {
 			set_PWM_dutycycle(pi, INPUT2, i);
 			set_PWM_dutycycle(pi, INPUT4, i);
 			gpio_write(pi, INPUT1, PI_LOW);
 			gpio_write(pi, INPUT3, PI_LOW);
             printf("Forward %d\n", i);
-			time_sleep(1);
+			time_sleep(0.5);
 		}
 		//Slow_stop
-/*		for (i = range; i > 0; i -= 10) {
+		for (i = range; i >= 0; i -= 10) {
 			set_PWM_dutycycle(pi, INPUT2, i);
 			set_PWM_dutycycle(pi, INPUT4, i);
 			gpio_write(pi, INPUT1, PI_LOW);
 			gpio_write(pi, INPUT3, PI_LOW);
 			printf("Slow_stop %d\n", i);
-			time_sleep(1);
+			time_sleep(0.5);
 		}
 		//Reverse        
-		for (i = 50; i < range; i += 10) {
+		for (i = 30; i <= range; i += 10) {
 			set_PWM_dutycycle(pi, INPUT1, i);
 			set_PWM_dutycycle(pi, INPUT3, i);
 			gpio_write(pi, INPUT2, PI_LOW);
 			gpio_write(pi, INPUT4, PI_LOW);
 			printf("Reverse %d\n", i);
-			time_sleep(1);
+			time_sleep(0.5);
 		}
-		//Turn_left
-		for (i = 50; i < range; i += 10) {
+		//Left_turn
+		for (i = 30; i <= range; i += 10) {
 			set_PWM_dutycycle(pi, INPUT2, i);
 			gpio_write(pi, INPUT1, PI_LOW);
 			gpio_write(pi, INPUT3, PI_LOW);
 			gpio_write(pi, INPUT4, PI_LOW);
             printf("Turn_left %d\n", i);
-			time_sleep(1);
+			time_sleep(0.5);
 		}
-		//Turn_right
-		for (i = 50; i < range; i += 10) {
+		//Right_turn
+		for (i = 30; i <= range; i += 10) {
 			set_PWM_dutycycle(pi, INPUT4, i);
 			gpio_write(pi, INPUT1, PI_LOW);
 			gpio_write(pi, INPUT2, PI_LOW);
 			gpio_write(pi, INPUT3, PI_LOW);
             printf("Turn_right %d\n", i);
-			time_sleep(1);
+			time_sleep(0.5);
 		}
-		//Left_turn
-		for (i = 50; i < range; i += 10) {
+		//Turn_left
+		for (i = 30; i <= range; i += 10) {
 			set_PWM_dutycycle(pi, INPUT2, i + 20);
 			set_PWM_dutycycle(pi, INPUT4, i);
 			gpio_write(pi, INPUT1, PI_LOW);
 			gpio_write(pi, INPUT3, PI_LOW);
             printf("Left_turn %d\n", i);
-			time_sleep(1);
+			time_sleep(0.5);
 		}
-		//Right_turn
-		for (i = 50; i < range; i += 10) {
+		//Turn_right
+		for (i = 30; i <= range; i += 10) {
 			set_PWM_dutycycle(pi, INPUT4, i + 20);
 			set_PWM_dutycycle(pi, INPUT2, i);
 			gpio_write(pi, INPUT1, PI_LOW);
 			gpio_write(pi, INPUT3, PI_LOW);
             printf("Right_turn %d\n", i);
-			time_sleep(1);
+			time_sleep(0.5);
 		}
-        gpio_write(pi, INPUT1, PI_LOW);
-	    gpio_write(pi, INPUT2, PI_LOW);
-	    gpio_write(pi, INPUT3, PI_LOW);
-	    gpio_write(pi, INPUT4, PI_LOW);
-        time_sleep(1);*/
 	}
         gpio_write(pi, INPUT1, PI_LOW);
 	    gpio_write(pi, INPUT2, PI_LOW);
