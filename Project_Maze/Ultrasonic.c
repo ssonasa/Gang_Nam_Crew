@@ -9,6 +9,7 @@
 #define LEFT_TRIG_PINNO 21
 #define LEFT_ECHO_PINNO 20
 
+#define Pulse_Length 10
 
 void trigger(void);
 void cb_func_echo(int pi, unsigned gpio, unsigned level, uint32_t tick);
@@ -43,7 +44,7 @@ int main()
 
     while(1){
         start_tick_ = dist_tick_ = 0;
-        gpio_trigger(pi, FRONT_TRIG_PINNO, 10, PI_HIGH);
+        gpio_trigger(pi, FRONT_TRIG_PINNO, Pulse_Length, PI_HIGH);
         time_sleep(0.05);   //185cm일때 10930마이크로 초 걸린다. (약0.01초)
 
         if(dist_tick_ && start_tick_){
@@ -58,7 +59,7 @@ int main()
             printf("sense error\n");
         
         start_tick_ = dist_tick_ = 0;
-        gpio_trigger(pi, RIGHT_TRIG_PINNO, 10, PI_HIGH);
+        gpio_trigger(pi, RIGHT_TRIG_PINNO, Pulse_Length, PI_HIGH);
         time_sleep(0.05);
         if(dist_tick_ && start_tick_){
             //distance = (float)(dist_tick_) / 58.8235;
@@ -72,7 +73,7 @@ int main()
             printf("sense error\n");
         
         start_tick_ = dist_tick_ = 0;
-        gpio_trigger(pi, LEFT_TRIG_PINNO, 10, PI_HIGH);
+        gpio_trigger(pi, LEFT_TRIG_PINNO, Pulse_Length, PI_HIGH);
         time_sleep(0.05);
 
         if(dist_tick_ && start_tick_){
@@ -86,22 +87,41 @@ int main()
         else
             printf("sense error\n");
 
+        //Reverse
+        if((Fdistance <= 5.5) && (Rdistance == Ldistance)){
+            printf("REVERSE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+            time_sleep(0.5);
+        }
+        //Left_Reverse
+        else if((Fdistance <= 5.5) && (Rdistance < Ldistance)){
+			time_sleep(0.5);
+        }
+        //Right_Reverse
+        else if((Fdistance <= 5.5) && (Ldistance < Rdistance)){
+            printf("Right_Reverse!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+			time_sleep(0.5);
+        }
         //Forward
-        if((Ldistance <= Rdistance+2 && Ldistance >= Rdistance-2) && (Rdistance < Fdistance)){
-            
-            printf("FORWARD!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n");
-            time_sleep(1);
+        else if((Fdistance > 5.5) && (Rdistance == Ldistance)){
+            printf("FORWARD!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+            time_sleep(0.5);
         }
-        else if((Rdistance <= Fdistance+2 && Rdistance >= Fdistance-2) && (Fdistance < Ldistance)){
-            
-            printf("LEFT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n");
-            time_sleep(1);       
+        //Left_Forward
+        else if((Fdistance > 5.5) && (Rdistance < Ldistance)){
+            printf("Left_Forward!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+			time_sleep(0.5);
         }
-        else if((Fdistance <= Ldistance+2 && Fdistance >= Ldistance-2) && (Ldistance < Rdistance)){
-            
-            printf("RIGHT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n");
-            time_sleep(1);
+        //Right_Forward
+        else if((Fdistance > 5.5) && (Ldistance < Rdistance)){
+            printf("Right_Forward!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+			time_sleep(0.5);
         }
+        else{
+            printf("sense error\n");
+
+            time_sleep(5);
+        }
+        time_sleep(1);
     }
     
 

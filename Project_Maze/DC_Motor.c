@@ -2,12 +2,28 @@
 #include <stdlib.h>
 #include <pigpiod_if2.h>
 
-#define INPUT1 17
-#define INPUT2 22
-#define INPUT3 24
-#define INPUT4 23
+#define LF 17
+#define LR 22
+#define RF 24
+#define RR 23
 
-#define DUTYCYCLE(x, range) x/(float)range*100
+#define DUTYCYCLE(x, range) x / (float)range * 100
+
+#define Front_MIN_LENGTH 8
+#define Right_MIN_LENGTH 6
+#define Left_MIN_LENGTH 6
+
+#define WHEEL_SPEED_HIGH 70
+#define WHEEL_SPEED_MIDDLE 50
+#define WHEEL_SPEED_LOW 68
+
+void WHEEL_STOP(int pi)
+{
+	set_PWM_dutycycle(pi, LF, PI_LOW);
+	set_PWM_dutycycle(pi, RF, PI_LOW);
+	set_PWM_dutycycle(pi, LR, PI_LOW);
+	set_PWM_dutycycle(pi, RR, PI_LOW);
+}
 
 int main(void)
 {
@@ -17,100 +33,113 @@ int main(void)
 	int default_range = 100;
 	int range;
 
-	if ((pi = pigpio_start(NULL, NULL)) < 0) {
+	if ((pi = pigpio_start(NULL, NULL)) < 0)
+	{
 		fprintf(stderr, "%s\n", pigpio_error(pi));
 		exit(-1);
 	}
 
-	set_mode(pi, INPUT1, PI_OUTPUT);
-	set_mode(pi, INPUT2, PI_OUTPUT);
-	set_mode(pi, INPUT3, PI_OUTPUT);
-	set_mode(pi, INPUT4, PI_OUTPUT);
+	set_mode(pi, LF, PI_OUTPUT);
+	set_mode(pi, LR, PI_OUTPUT);
+	set_mode(pi, RF, PI_OUTPUT);
+	set_mode(pi, RR, PI_OUTPUT);
 
-	set_PWM_range(pi, INPUT1, default_range);
-	set_PWM_range(pi, INPUT2, default_range);
-	set_PWM_range(pi, INPUT3, default_range);
-	set_PWM_range(pi, INPUT4, default_range);
+	set_PWM_range(pi, LF, default_range);
+	set_PWM_range(pi, LR, default_range);
+	set_PWM_range(pi, RF, default_range);
+	set_PWM_range(pi, RR, default_range);
 	range = get_PWM_range(pi, INPUT1);
 
-	for (int k = 0; k < 5; k++) {
-        gpio_write(pi, INPUT1, PI_LOW);
-	    gpio_write(pi, INPUT2, PI_LOW);
-	    gpio_write(pi, INPUT3, PI_LOW);
-	    gpio_write(pi, INPUT4, PI_LOW);
-        time_sleep(2);
-		//Forward
-		for (i = 30; i <= range; i += 10) {
-			set_PWM_dutycycle(pi, INPUT2, i);
-			set_PWM_dutycycle(pi, INPUT4, i);
-			gpio_write(pi, INPUT1, PI_LOW);
-			gpio_write(pi, INPUT3, PI_LOW);
-            printf("Forward %d\n", i);
-			time_sleep(0.5);
-		}
-		//Slow_stop
-		for (i = range; i >= 0; i -= 10) {
-			set_PWM_dutycycle(pi, INPUT2, i);
-			set_PWM_dutycycle(pi, INPUT4, i);
-			gpio_write(pi, INPUT1, PI_LOW);
-			gpio_write(pi, INPUT3, PI_LOW);
-			printf("Slow_stop %d\n", i);
-			time_sleep(0.5);
-		}
-		//Reverse        
-		for (i = 30; i <= range; i += 10) {
-			set_PWM_dutycycle(pi, INPUT1, i);
-			set_PWM_dutycycle(pi, INPUT3, i);
-			gpio_write(pi, INPUT2, PI_LOW);
-			gpio_write(pi, INPUT4, PI_LOW);
-			printf("Reverse %d\n", i);
-			time_sleep(0.5);
-		}
-		//Left_turn
-		for (i = 30; i <= range; i += 10) {
-			set_PWM_dutycycle(pi, INPUT2, i);
-			gpio_write(pi, INPUT1, PI_LOW);
-			gpio_write(pi, INPUT3, PI_LOW);
-			gpio_write(pi, INPUT4, PI_LOW);
-            printf("Turn_left %d\n", i);
-			time_sleep(0.5);
-		}
-		//Right_turn
-		for (i = 30; i <= range; i += 10) {
-			set_PWM_dutycycle(pi, INPUT4, i);
-			gpio_write(pi, INPUT1, PI_LOW);
-			gpio_write(pi, INPUT2, PI_LOW);
-			gpio_write(pi, INPUT3, PI_LOW);
-            printf("Turn_right %d\n", i);
-			time_sleep(0.5);
-		}
-		//Turn_left
-		for (i = 30; i <= range; i += 10) {
-			set_PWM_dutycycle(pi, INPUT2, i + 20);
-			set_PWM_dutycycle(pi, INPUT4, i);
-			gpio_write(pi, INPUT1, PI_LOW);
-			gpio_write(pi, INPUT3, PI_LOW);
-            printf("Left_turn %d\n", i);
-			time_sleep(0.5);
-		}
-		//Turn_right
-		for (i = 30; i <= range; i += 10) {
-			set_PWM_dutycycle(pi, INPUT4, i + 20);
-			set_PWM_dutycycle(pi, INPUT2, i);
-			gpio_write(pi, INPUT1, PI_LOW);
-			gpio_write(pi, INPUT3, PI_LOW);
-            printf("Right_turn %d\n", i);
-			time_sleep(0.5);
-		}
-	}
-        gpio_write(pi, INPUT1, PI_LOW);
-	    gpio_write(pi, INPUT2, PI_LOW);
-	    gpio_write(pi, INPUT3, PI_LOW);
-	    gpio_write(pi, INPUT4, PI_LOW);
+	//FORWARD
+	set_PWM_dutycycle(pi, LF, WHEEL_SPEED_MIDDLE);
+	set_PWM_dutycycle(pi, RF, WHEEL_SPEED_MIDDLE);
+	set_PWM_dutycycle(pi, LR, PI_LOW);
+	set_PWM_dutycycle(pi, RR, PI_LOW);
+	printf("Forward\n");
+	time_sleep(1);
+	WHEEL_STOP(pi);
 
+	//RIGHT_FORWARD
+	set_PWM_dutycycle(pi, LF, WHEEL_SPEED_HIGH);
+	set_PWM_dutycycle(pi, RF, WHEEL_SPEED_LOW);
+	set_PWM_dutycycle(pi, LR, PI_LOW);
+	set_PWM_dutycycle(pi, RR, PI_LOW);
+	printf("Right_Forward\n");
+	time_sleep(1);
+	WHEEL_STOP(pi);
 
+	//LEFT_FORWARD
+	set_PWM_dutycycle(pi, LF, WHEEL_SPEED_LOW);
+	set_PWM_dutycycle(pi, RF, WHEEL_SPEED_HIGH);
+	set_PWM_dutycycle(pi, LR, PI_LOW);
+	set_PWM_dutycycle(pi, RR, PI_LOW);
+	printf("Left_Forward\n");
+	time_sleep(1);
+	WHEEL_STOP(pi);
+
+	//REVERSE
+	set_PWM_dutycycle(pi, LR, WHEEL_SPEED_MIDDLE);
+	set_PWM_dutycycle(pi, RR, WHEEL_SPEED_MIDDLE);
+	set_PWM_dutycycle(pi, LF, PI_LOW);
+	set_PWM_dutycycle(pi, RF, PI_LOW);
+	printf("Reverse\n");
+	time_sleep(1);
+	WHEEL_STOP(pi);
+
+	//RIGHT_REVERSE
+	set_PWM_dutycycle(pi, LR, WHEEL_SPEED_HIGH);
+	set_PWM_dutycycle(pi, RR, WHEEL_SPEED_LOW);
+	set_PWM_dutycycle(pi, LF, PI_LOW);
+	set_PWM_dutycycle(pi, RF, PI_LOW);
+	printf("Right_Reverse\n");
+	time_sleep(1);
+	WHEEL_STOP(pi);
+
+	//LEFT_REVERSE
+	set_PWM_dutycycle(pi, LR, WHEEL_SPEED_HIGH);
+	set_PWM_dutycycle(pi, RR, WHEEL_SPEED_HIGH);
+	set_PWM_dutycycle(pi, LF, PI_LOW);
+	set_PWM_dutycycle(pi, RF, PI_LOW);
+	printf("Left_Reverse\n");
+	time_sleep(1);
+	WHEEL_STOP(pi);
+
+	//RIGHT_TRIPLE_ACCEL
+	set_PWM_dutycycle(pi, LF, WHEEL_SPEED_HIGH);
+	set_PWM_dutycycle(pi, RR, WHEEL_SPEED_LOW);
+	set_PWM_dutycycle(pi, LR, PI_LOW);
+	set_PWM_dutycycle(pi, RF, PI_LOW);
+	printf("Right_Triple_Accel\n");
+	time_sleep(1);
+	WHEEL_STOP(pi);
+
+	//LEFT_TRIPLE_ACCEL
+	set_PWM_dutycycle(pi, RF, WHEEL_SPEED_HIGH);
+	set_PWM_dutycycle(pi, LR, WHEEL_SPEED_LOW);
+	set_PWM_dutycycle(pi, RR, PI_LOW);
+	set_PWM_dutycycle(pi, LF, PI_LOW);
+	printf("Left_Triple_Accel\n");
+	time_sleep(1);
+	WHEEL_STOP(pi);
+
+	//RIGHT_TURN
+	set_PWM_dutycycle(pi, LF, WHEEL_SPEED_HIGH);
+	set_PWM_dutycycle(pi, LR, PI_LOW);
+	set_PWM_dutycycle(pi, RF, PI_LOW);
+	set_PWM_dutycycle(pi, RR, PI_LOW);
+	printf("Right_Trun\n");
+	time_sleep(1);
+	WHEEL_STOP(pi);
+
+	//Left_TURN
+	set_PWM_dutycycle(pi, RF, WHEEL_SPEED_HIGH);
+	set_PWM_dutycycle(pi, LR, PI_LOW);
+	set_PWM_dutycycle(pi, LF, PI_LOW);
+	set_PWM_dutycycle(pi, RR, PI_LOW);
+	printf("Left_Trun\n");
+	time_sleep(1);
+	WHEEL_STOP(pi);
+
+	printf("END\n");
 	return 0;
 }
-
-
-
