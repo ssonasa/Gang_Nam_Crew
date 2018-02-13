@@ -1,11 +1,45 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <pigpiod_if2.h>
 #include <math.h>
-#include "Functions.h"
 
+//D
+#define LF 17
+#define LR 22
+#define RF 24
+#define RR 23
+//U
+#define FRONT_TRIG_PINNO 16
+#define FRONT_ECHO_PINNO 13
+#define RIGHT_TRIG_PINNO 19
+#define RIGHT_ECHO_PINNO 6
+#define LEFT_TRIG_PINNO 21
+#define LEFT_ECHO_PINNO 20
+#define Pulse_Length 10
+#define Sleep_Time 0.05
+//D
+#define DUTYCYCLE(x, range) x / (float)range * 100
 //U
 void trigger(void);
 void cb_func_echo(int pi, unsigned gpio, unsigned level, uint32_t tick);
 uint32_t start_tick_, dist_tick_;
+void WHEEL_STOP(int pi);
 
+#define Front_MIN_LENGTH 8
+#define Right_MIN_LENGTH 6
+#define Left_MIN_LENGTH 6
+
+#define WHEEL_SPEED_HIGH 60
+#define WHEEL_SPEED_MIDDLE 50
+#define WHEEL_SPEED_LOW 54
+
+void WHEEL_STOP(int pi)
+{
+    set_PWM_dutycycle(pi, LF, PI_LOW);
+    set_PWM_dutycycle(pi, RF, PI_LOW);
+    set_PWM_dutycycle(pi, LR, PI_LOW);
+    set_PWM_dutycycle(pi, RR, PI_LOW);
+}
 int main(void)
 {
 
@@ -20,7 +54,17 @@ int main(void)
         fprintf(stderr, "%s\n", pigpio_error(pi));
         exit(-1); //return 1;
     }
-    set_ServoMotor(pi);
+    //D
+    set_mode(pi, LF, PI_OUTPUT);
+    set_mode(pi, LR, PI_OUTPUT);
+    set_mode(pi, RF, PI_OUTPUT);
+    set_mode(pi, RR, PI_OUTPUT);
+    //D
+    set_PWM_range(pi, LF, default_range);
+    range = get_PWM_range(pi, LF);
+    set_PWM_range(pi, LR, default_range);
+    set_PWM_range(pi, RF, default_range);
+    set_PWM_range(pi, RR, default_range);
     //U
     set_mode(pi, FRONT_TRIG_PINNO, PI_OUTPUT);
     set_mode(pi, FRONT_ECHO_PINNO, PI_INPUT);
@@ -41,10 +85,9 @@ int main(void)
     while (1)
     {
         float Fdistance = 0, Ldistance = 0, Rdistance = 0;
-        float sumf[5], sumr[5], suml[5];
-        int Fbool, Rbool, Lbool;
+        float sumf[4], sumr[4], suml[4];
 
-        for (int j = 0; j < 3; j++)
+        for (int j = 0; j < 4; j++)
         {
             for (int i = 0; i < 3; i++)
             {
@@ -56,7 +99,7 @@ int main(void)
                     Fdistance = dist_tick_ / 1000000. * 340 / 2 * 100;
                     if (Fdistance < 2 || Fdistance > 400)
                     {
-                        printf("FRONT : Too close or too far\n");
+                        printf("Too close or too far\n");
                         WHEEL_STOP(pi);
                     }
 
@@ -80,7 +123,7 @@ int main(void)
                     Rdistance = dist_tick_ / 1000000. * 340 / 2 * 100;
                     if (Rdistance < 2 || Rdistance > 400)
                     {
-                        printf("RIGHT : Too close or too far\n");
+                        printf("Too close or too far\n");
                         WHEEL_STOP(pi);
                     }
                     else
@@ -103,15 +146,13 @@ int main(void)
                     Ldistance = dist_tick_ / 1000000. * 340 / 2 * 100;
                     if (Ldistance < 2 || Ldistance > 400)
                     {
-                        printf("LEFT : Too close or too far\n");
+                        printf("Too close or too far\n");
                         WHEEL_STOP(pi);
                     }
                     else
                     {
                         printf("LEFT : %6dus, Distance : %6.1f cm\n", dist_tick_, Ldistance);
                         suml[i] = Ldistance;
-                        if (i == 2)
-                            printf("\n");
                     }
                 }
                 else
@@ -124,10 +165,7 @@ int main(void)
             sumf[3] = sumf[0] + sumf[1] + sumf[2];
             sumr[3] = sumr[0] + sumr[1] + sumr[2];
             suml[3] = suml[0] + suml[1] + suml[2];
-            sumf[4] = sumf[3] / 3;
-            sumr[4] = sumr[3] / 3;
-            suml[4] = suml[3] / 3;
-            if (j == 2)
+            if (j == 3)
             {
                 printf("sumf[0] = %f, sumf[1] = %f, sumf[2] = %f\n", sumf[0], sumf[1], sumf[2]);
                 printf("sumr[0] = %f, sumr[1] = %f, sumr[2] = %f\n", sumr[0], sumr[1], sumr[2]);
@@ -147,61 +185,78 @@ int main(void)
             }
         }
 
-        if (sumf[4] > WIDTH)
-            Fbool = 1;
-        else if (sumf[4] < WIDTH)
-            Fbool = 0;
-
-        if (sumr[4] > WIDTH)
-            Rbool = 1;
-        else if (sumr[4] < WIDTH)
-            Rbool = 0;
-
-        if (suml[4] > WIDTH)
-            Lbool = 1;
-        else if (suml[4] < WIDTH)
-            Lbool = 0;
-
-        printf("Fbool = %d, Rbool = %d, Lbool = %d\n", Fbool, Rbool, Lbool);
-        
-        if (Rbool == 1)
+        if (Fdistance > Front_MIN_LENGTH)
         {
-            //우회전
-            WHEEL_RIGHT_TRIPLE_ACCEL(pi);
-        }
-        else if (Rbool == 0)
-        {
-            if (Fbool == 1)
+
+            if (Ldistance < Rdistance)
             {
-                if (Rdistance == Ldistance)
-                {
-                    //직진
-                    WHEEL_FORWARD(pi);
-                }
-                else if (Rdistance < Ldistance)
-                {
-                    //LEFT_FORWARD
-                    WHEEL_LEFT_FORWARD(pi);
-
-                }
-                else if (Rdistance > Ldistance)
-                {
-                    //RIGHT_FORWARD
-                    WHEEL_RIGHT_FORWARD(pi);
-                }
+                set_PWM_dutycycle(pi, LR, WHEEL_SPEED_HIGH);
+                set_PWM_dutycycle(pi, RR, WHEEL_SPEED_LOW);
+                set_PWM_dutycycle(pi, LF, PI_LOW);
+                set_PWM_dutycycle(pi, RF, PI_LOW);
+                printf("Right_Reverse\n");
+                time_sleep(1);
+                WHEEL_STOP(pi);
+                time_sleep(2);
             }
-            else if (Fbool == 0)
+            else if (Rdistance < Ldistance)
             {
-                if (Lbool == 1)
-                {
-                    //좌회전
-                    WHEEL_LEFT_TRIPLE_ACCEL(pi);
-                }
-                else
-                {
-                    //유턴 자린데 일단 후진 넣어놨음
-                    WHEEL_REVERSE(pi);
-                }
+                set_PWM_dutycycle(pi, LR, WHEEL_SPEED_HIGH);
+                set_PWM_dutycycle(pi, RR, WHEEL_SPEED_HIGH);
+                set_PWM_dutycycle(pi, LF, PI_LOW);
+                set_PWM_dutycycle(pi, RF, PI_LOW);
+                printf("Left_Reverse\n");
+                time_sleep(1);
+                WHEEL_STOP(pi);
+                time_sleep(2);
+            }
+            else if (abs(Ldistance - Rdistance) < 3)
+            {
+                set_PWM_dutycycle(pi, LR, WHEEL_SPEED_MIDDLE);
+                set_PWM_dutycycle(pi, RR, WHEEL_SPEED_MIDDLE);
+                set_PWM_dutycycle(pi, LF, PI_LOW);
+                set_PWM_dutycycle(pi, RF, PI_LOW);
+                printf("Reverse\n");
+                time_sleep(1);
+                WHEEL_STOP(pi);
+                time_sleep(2);
+            }
+            else
+            {
+                set_PWM_dutycycle(pi, LF, WHEEL_SPEED_MIDDLE);
+                set_PWM_dutycycle(pi, RF, WHEEL_SPEED_MIDDLE);
+                set_PWM_dutycycle(pi, LR, PI_LOW);
+                set_PWM_dutycycle(pi, RR, PI_LOW);
+                printf("Forward\n");
+                time_sleep(1);
+                WHEEL_STOP(pi);
+                time_sleep(2);
+            }
+        }
+        else
+        {
+            printf("======Front <<<<<<<<<< 5 => REVERSE======\n");
+            if (Ldistance < Rdistance)
+            {
+                set_PWM_dutycycle(pi, LF, WHEEL_SPEED_HIGH);
+                set_PWM_dutycycle(pi, RR, WHEEL_SPEED_LOW);
+                set_PWM_dutycycle(pi, LR, PI_LOW);
+                set_PWM_dutycycle(pi, RF, PI_LOW);
+                printf("Right_Triple_Accel\n");
+                time_sleep(1);
+                WHEEL_STOP(pi);
+                time_sleep(2);
+            }
+            else if (Rdistance < Ldistance)
+            {
+                set_PWM_dutycycle(pi, RF, WHEEL_SPEED_HIGH);
+                set_PWM_dutycycle(pi, LR, WHEEL_SPEED_LOW);
+                set_PWM_dutycycle(pi, RR, PI_LOW);
+                set_PWM_dutycycle(pi, LF, PI_LOW);
+                printf("Left_Triple_Accel\n");
+                time_sleep(1);
+                WHEEL_STOP(pi);
+                time_sleep(2);
             }
         }
     }

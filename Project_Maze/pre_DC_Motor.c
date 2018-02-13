@@ -1,36 +1,44 @@
-#include "Functions.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <pigpiod_if2.h>
 
-/*
-uint32_t start_tick_, dist_tick_; //초음파 시간을 계산하기 위한 변수
-void cb_func_echo(int pi, unsigned gpio, unsigned level, uint32_t tick)
+#define LF 23
+#define LR 24
+#define RF 22
+#define RR 17
+
+#define DUTYCYCLE(x, range) x / (float)range * 100
+
+#define Front_MIN_LENGTH 8
+#define Right_MIN_LENGTH 6
+#define Left_MIN_LENGTH 6
+
+#define WHEEL_SPEED_HIGH 60
+#define WHEEL_SPEED_MIDDLE 50
+#define WHEEL_SPEED_LOW 58
+
+void WHEEL_STOP(int pi)
 {
-    
-    if (level == PI_HIGH)
-        start_tick_ = tick;
-    else if (level == PI_LOW)
-        dist_tick_ = tick - start_tick_;
+	set_PWM_dutycycle(pi, LF, PI_LOW);
+	set_PWM_dutycycle(pi, RF, PI_LOW);
+	set_PWM_dutycycle(pi, LR, PI_LOW);
+	set_PWM_dutycycle(pi, RR, PI_LOW);
 }
-void set_Ultrasonic_sensor(int pi){
-    set_mode(pi, FRONT_TRIG_PINNO, PI_OUTPUT);
-    set_mode(pi, FRONT_ECHO_PINNO, PI_INPUT);
-    callback(pi, FRONT_ECHO_PINNO, EITHER_EDGE, cb_func_echo);
-    gpio_write(pi, FRONT_TRIG_PINNO, PI_OFF);
 
-    set_mode(pi, RIGHT_TRIG_PINNO, PI_OUTPUT);
-    set_mode(pi, RIGHT_ECHO_PINNO, PI_INPUT);
-    callback(pi, RIGHT_ECHO_PINNO, EITHER_EDGE, cb_func_echo);
-    gpio_write(pi, RIGHT_TRIG_PINNO, PI_OFF);
+int main(void)
+{
+	int i;
+	int pi;
 
-    set_mode(pi, LEFT_TRIG_PINNO, PI_OUTPUT);
-    set_mode(pi, LEFT_ECHO_PINNO, PI_INPUT);
-    callback(pi, LEFT_ECHO_PINNO, EITHER_EDGE, cb_func_echo);
-    gpio_write(pi, LEFT_TRIG_PINNO, PI_OFF);
-}
-*/
-
-void set_ServoMotor(int pi){
-    int default_range = 100;
+	int default_range = 100;
 	int range;
+
+	if ((pi = pigpio_start(NULL, NULL)) < 0)
+	{
+		fprintf(stderr, "%s\n", pigpio_error(pi));
+		exit(-1);
+	}
+
 	set_mode(pi, LF, PI_OUTPUT);
 	set_mode(pi, LR, PI_OUTPUT);
 	set_mode(pi, RF, PI_OUTPUT);
@@ -41,17 +49,8 @@ void set_ServoMotor(int pi){
 	set_PWM_range(pi, RF, default_range);
 	set_PWM_range(pi, RR, default_range);
 	range = get_PWM_range(pi, LF);
-}
 
-void WHEEL_STOP(int pi)
-{
-	set_PWM_dutycycle(pi, LF, PI_LOW);
-	set_PWM_dutycycle(pi, RF, PI_LOW);
-	set_PWM_dutycycle(pi, LR, PI_LOW);
-	set_PWM_dutycycle(pi, RR, PI_LOW);
-}
-void WHEEL_FORWARD(int pi)
-{
+	//FORWARD
 	set_PWM_dutycycle(pi, LF, WHEEL_SPEED_MIDDLE);
 	set_PWM_dutycycle(pi, RF, WHEEL_SPEED_MIDDLE);
 	set_PWM_dutycycle(pi, LR, PI_LOW);
@@ -60,9 +59,8 @@ void WHEEL_FORWARD(int pi)
 	time_sleep(3);
 	WHEEL_STOP(pi);
 	time_sleep(2);
-}
-void WHEEL_RIGHT_FORWARD(int pi)
-{
+
+	//RIGHT_FORWARD
 	set_PWM_dutycycle(pi, LF, WHEEL_SPEED_HIGH);
 	set_PWM_dutycycle(pi, RF, WHEEL_SPEED_LOW);
 	set_PWM_dutycycle(pi, LR, PI_LOW);
@@ -71,9 +69,8 @@ void WHEEL_RIGHT_FORWARD(int pi)
 	time_sleep(1);
 	WHEEL_STOP(pi);
 	time_sleep(2);
-}
-void WHEEL_LEFT_FORWARD(int pi)
-{
+
+	//LEFT_FORWARD
 	set_PWM_dutycycle(pi, LF, 50);
 	set_PWM_dutycycle(pi, RF, WHEEL_SPEED_HIGH);
 	set_PWM_dutycycle(pi, LR, PI_LOW);
@@ -82,9 +79,8 @@ void WHEEL_LEFT_FORWARD(int pi)
 	time_sleep(1);
 	WHEEL_STOP(pi);
 	time_sleep(2);
-}
-void WHEEL_REVERSE(int pi)
-{
+
+	//REVERSE
 	set_PWM_dutycycle(pi, LR, WHEEL_SPEED_MIDDLE);
 	set_PWM_dutycycle(pi, RR, WHEEL_SPEED_MIDDLE);
 	set_PWM_dutycycle(pi, LF, PI_LOW);
@@ -93,9 +89,28 @@ void WHEEL_REVERSE(int pi)
 	time_sleep(1);
 	WHEEL_STOP(pi);
 	time_sleep(2);
-}
-void WHEEL_RIGHT_TRIPLE_ACCEL(int pi)
-{
+
+	//RIGHT_REVERSE
+	set_PWM_dutycycle(pi, LR, WHEEL_SPEED_HIGH);
+	set_PWM_dutycycle(pi, RR, WHEEL_SPEED_LOW);
+	set_PWM_dutycycle(pi, LF, PI_LOW);
+	set_PWM_dutycycle(pi, RF, PI_LOW);
+	printf("Right_Reverse\n");
+	time_sleep(1);
+	WHEEL_STOP(pi);
+	time_sleep(2);
+
+	//LEFT_REVERSE
+	set_PWM_dutycycle(pi, LR, 54);
+	set_PWM_dutycycle(pi, RR, WHEEL_SPEED_HIGH);
+	set_PWM_dutycycle(pi, LF, PI_LOW);
+	set_PWM_dutycycle(pi, RF, PI_LOW);
+	printf("Left_Reverse\n");
+	time_sleep(1);
+	WHEEL_STOP(pi);
+	time_sleep(2);
+
+	//RIGHT_TRIPLE_ACCEL
 	set_PWM_dutycycle(pi, LF, WHEEL_SPEED_HIGH);
 	set_PWM_dutycycle(pi, RR, WHEEL_SPEED_LOW);
 	set_PWM_dutycycle(pi, LR, PI_LOW);
@@ -104,9 +119,8 @@ void WHEEL_RIGHT_TRIPLE_ACCEL(int pi)
 	time_sleep(1);
 	WHEEL_STOP(pi);
 	time_sleep(2);
-}
-void WHEEL_LEFT_TRIPLE_ACCEL(int pi)
-{
+
+	//LEFT_TRIPLE_ACCEL
 	set_PWM_dutycycle(pi, RF, WHEEL_SPEED_HIGH);
 	set_PWM_dutycycle(pi, LR, WHEEL_SPEED_LOW);
 	set_PWM_dutycycle(pi, RR, PI_LOW);
@@ -115,9 +129,8 @@ void WHEEL_LEFT_TRIPLE_ACCEL(int pi)
 	time_sleep(1);
 	WHEEL_STOP(pi);
 	time_sleep(2);
-}
-void WHEEL_RIGHT_TURN(int pi)
-{
+
+	//RIGHT_TURN
 	set_PWM_dutycycle(pi, LF, WHEEL_SPEED_HIGH);
 	set_PWM_dutycycle(pi, LR, PI_LOW);
 	set_PWM_dutycycle(pi, RF, PI_LOW);
@@ -126,9 +139,8 @@ void WHEEL_RIGHT_TURN(int pi)
 	time_sleep(1);
 	WHEEL_STOP(pi);
 	time_sleep(2);
-}
-void WHEEL_LEFT_TURN(int pi)
-{
+
+	//Left_TURN
 	set_PWM_dutycycle(pi, RF, WHEEL_SPEED_HIGH);
 	set_PWM_dutycycle(pi, LR, PI_LOW);
 	set_PWM_dutycycle(pi, LF, PI_LOW);
@@ -137,7 +149,7 @@ void WHEEL_LEFT_TURN(int pi)
 	time_sleep(1);
 	WHEEL_STOP(pi);
 	time_sleep(2);
+
+	printf("END\n");
+	return 0;
 }
-
-
-
