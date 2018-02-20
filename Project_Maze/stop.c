@@ -1,4 +1,4 @@
-#include "Functions.h"
+#include "myFunctions.h"
 
 int main(void)
 {

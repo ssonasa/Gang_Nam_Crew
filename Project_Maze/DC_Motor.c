@@ -1,4 +1,4 @@
-#include "Functions.h"
+#include "myFunctions.h"
 
 int main(void)
 {
@@ -10,11 +10,15 @@ int main(void)
 		exit(-1);
 	}
 
-	//gpioí•€ outputì„¤ì •
+	//gpioÇÉ output¼³Á¤
 	set_ServoMotor(pi);
 
 	//FORWARD
 	WHEEL_FORWARD(pi);
+    time_sleep(400);
+printf("%d\n", WHEEL_SPEED_HIGH);
+printf("%f\n", WHEEL_SPEED_MIDDLE);
+time_sleep(3);
 	//RIGHT_FORWARD
 	WHEEL_RIGHT_FORWARD(pi);
 	//LEFT_FORWARD

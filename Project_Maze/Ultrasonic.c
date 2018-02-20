@@ -1,5 +1,5 @@
 #include <unistd.h>
-#include "Functions.h"
+#include "myFunctions.h"
 
 uint32_t start_tick_, dist_tick_; //초음파 시간을 계산하기 위한 변수
 
